@@ -85,7 +85,7 @@ Copy into your surface repo `.github/workflows/`:
 
 Every release is **dual-published**: the same wheel tag `vX.Y.Z` appears on both private engine Release and this public dist Release.
 
-Maintainers: run `./scripts/mirror_docs_to_dist.sh` from the engine repo after bumping version (see engine `docs/PACKAGING.md`).
+Maintainers: `./scripts/release_engine.sh` auto-runs `scripts/mirror_docs_to_dist.sh --push` after wheel publish. GHA `Publish Python Package` mirrors docs when `FEISHU_INBOUND_DIST_TOKEN` is set. Manual: `cd projects/feishu-inbound-skill && ./scripts/mirror_docs_to_dist.sh X.Y.Z --push`
 
 ## Notes
 
