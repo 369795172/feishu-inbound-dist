@@ -127,3 +127,4 @@ Issues with `dev-accepted` and `promote_pr: pending` from pre-v0.1.32 auto-dispa
 
 - [skill_feishu_inbound_promote.md](../../skills/skill_feishu_inbound_promote.md)
 - [skill_feishu_inbound.md](../../skills/skill_feishu_inbound.md)
+- rootgrove: [workflow_feishu_inbound_promote.md](https://github.com/369795172/feishu-inbound-skill/issues/63), [workflow_scoped_promote_pr.md](https://github.com/369795172/feishu-inbound-skill/issues/35)

@@ -47,7 +47,7 @@ feishu-inbound promote --config <instance.yaml> --scan-only   # lead_tick
 ## Related
 
 - [acceptance_gate.md](../docs/acceptance_gate.md)
-- [workflows/promote.md](../docs/workflows/promote.md)
+- - [workflows/promote.md](../docs/workflows/promote.md)
 - Mechanical PR creation: `templates/github-workflow-promote-pr.yml`, `tools/cicd/create_promote_pr.sh`
 
 ## Recovery (legacy issues)

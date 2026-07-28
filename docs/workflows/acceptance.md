@@ -8,7 +8,7 @@
 - **触发**: dev acceptance、accept pass、accept fail、验收通过、验收不通过、dev-accepted、promote PR
 - **工具**: `feishu-inbound accept`（引擎 v0.1.17+）；lead tick 内 `accept --scan-only`
 - **创建日期**: 2026-06-24
-- **引擎 SSOT**: `../acceptance_gate.md`
+- **引擎 SSOT**: `docs/acceptance_gate.md`
 
 ---
 

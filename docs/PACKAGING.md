@@ -1,15 +1,13 @@
 # Packaging — dual GitHub Release wheels (private + public)
 
-GitHub **does not** host Python packages on GitHub Packages. Engine releases are published as **wheels attached to GitHub Releases** on two surfaces:
+GitHub **does not** host Python packages on GitHub Packages ([roadmap closed 2023-06](https://github.com/github/roadmap/issues/94); `pypi.pkg.github.com` returns 404). Engine releases are published as **wheels attached to GitHub Releases** on two surfaces:
 
 | Surface | Repo | Visibility | Role |
 |---------|------|------------|------|
-| Source / private Release | `369795172/feishu-inbound-skill` | private | Engine SSOT (source, tests) + backup wheel |
-| **Public dist Release** | `369795172/feishu-inbound-dist` | **public** | **Wheels + documentation** (this repo) |
+| Source / private Release | `369795172/feishu-inbound-skill` | private | Engine SSOT (source, tests, RFCs) + backup wheel |
+| Public dist Release | `369795172/feishu-inbound-dist` | **public** | Release wheels + documentation (no source tree) |
 
-Instance repos **only pin a version** in `requirements-feishu-inbound.txt`, e.g. `feishu-inbound==0.1.37`. Install helpers prefer the **public** wheel URL, then fall back to the private engine Release.
-
-**Consumer docs** (no source access): [INDEX.md](./INDEX.md) · [GETTING_STARTED.md](./GETTING_STARTED.md) · [skills/](../skills/)
+Instance repos (ASP, rootgrove personal) **only pin a version** in `requirements-feishu-inbound.txt`, e.g. `feishu-inbound==0.1.37` . Install helpers prefer the **public** wheel URL, then fall back to the private engine Release.
 
 ## Publish (maintainer)
 
@@ -24,6 +22,8 @@ Gate script: `./scripts/release_engine.sh` (from this repo).
 When `main` already has a higher `pyproject` version than the latest Release, push to `main` also triggers **Auto-tag when version ahead of release**, which creates `vX.Y.Z` and lets **Publish Python Package** attach the wheel to the private Release and mirror it to the public dist (when `FEISHU_INBOUND_DIST_TOKEN` is set).
 
 `release_engine.sh` also verifies the public dist asset and, if missing, runs `scripts/mirror_wheel_to_dist.sh`.
+
+After each release, `release_engine.sh` runs `scripts/mirror_docs_to_dist.sh --push` to sync docs/skills/templates to the public dist repo (GHA `Publish Python Package` does the same when `FEISHU_INBOUND_DIST_TOKEN` is set).
 
 ### GHA secret for public mirror
 

@@ -40,12 +40,18 @@ FEISHU_INBOUND_INSTALL=package bash tools/feishu_inbound/install_engine.sh
 
 - Full setup guide: [docs/GETTING_STARTED.md](../docs/GETTING_STARTED.md) · config: [docs/instance-config.md](../docs/instance-config.md)
 
-- Secrets: macOS Keychain `rootgrove/<PREFIX><KEY>`; declare `secrets_prefix` in instance config
-- ASP: `source projects/asp-infra/scripts/load_asp_env.sh` (sets `GITHUB_TOKEN`, `OPENCODE_*`, `ASP_WORKTREE_ROOT`)
 
 ## CLI entry points
 
-Console script (after `pip install` from dist wheel):
+Preferred wrapper (repo venv):
+
+```bash
+cd projects/feishu-inbound-skill
+scripts/run_cli.sh --version
+scripts/run_cli.sh triage --config /path/to/config.yaml --scan-only
+```
+
+Console script (after `pip install -e .`):
 
 ```bash
 feishu-inbound --version
@@ -109,7 +115,7 @@ feishu-inbound accept --config config.yaml --scan-only   # lead_tick polls /acce
 feishu-inbound promote --config config.yaml --issue N --repo owner/repo
 ```
 
-Full contract: [docs/acceptance_gate.md](../docs/acceptance_gate.md) · Promote: [skill_feishu_inbound_promote.md](skill_feishu_inbound_promote.md)
+Full contract: [docs/acceptance_gate.md](../docs/acceptance_gate.md) · Promote: [skill_feishu_inbound_promote.md](skill_feishu_inbound_promote.md) · [#63](https://github.com/369795172/feishu-inbound-skill/issues/63)
 
 **Fail:** `review-changes-requested`; remove `executed` / `review-dev-pass` / `dev-accepted`; re-assign operator for Pipeline D.
 
@@ -153,13 +159,13 @@ acceptance:
 
 ```bash
 # Scan queue (no agent call)
-feishu-inbound scan --config /path/to/config.yaml --scan-only
+scripts/run_cli.sh scan --config projects/asp-infra/tools/feishu_inbound/config.yaml --scan-only
 
 # Lead tick chain (launchd uses this)
-feishu-inbound lead-tick --config /path/to/config.yaml
+scripts/run_cli.sh lead-tick --config projects/asp-infra/tools/feishu_inbound/config.yaml
 
-# Install launchd from config schedules
-feishu-inbound install-launchd --config /path/to/config.yaml --jobs lead_tick
+# Install personal launchd (com.personal.*) — lead_tick only; Pipeline B triage is optional
+scripts/run_cli.sh install-launchd --config config/feishu_inbound_personal.yaml --jobs lead_tick
 ```
 
 ## Instance layout (engine vs instance)

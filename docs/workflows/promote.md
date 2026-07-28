@@ -7,7 +7,7 @@
 - **边界**: prod merge **不**自动化；仅 agent/CLI 显式触发 `repository_dispatch`
 - **触发**: `## Promote — Handoff`、`dev-accepted`、`feishu-inbound promote`
 - **工具**: `feishu-inbound promote`（引擎 v0.1.32+）；lead tick 内 `promote --scan-only`
-- **引擎 SSOT**: `../acceptance_gate.md`、`skills/skill_feishu_inbound_promote.md`
+- **引擎 SSOT**: `docs/acceptance_gate.md`、`skills/skill_feishu_inbound_promote.md`
 
 ---
 

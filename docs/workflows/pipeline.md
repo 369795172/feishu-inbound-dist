@@ -176,7 +176,7 @@ C/D/E/F 仍可通过 CLI 手动触发（`scan` / `execute` / `review` / `handbac
 | **fail 输出** | `review-changes-requested`；打回 D |
 | **不做** | merge prod；不替代 F handback |
 
-**详细 workflow**：[acceptance.md](./acceptance.md)。引擎契约：`../acceptance_gate.md`
+**详细 workflow**：[acceptance.md](./acceptance.md)。引擎契约：`docs/acceptance_gate.md`
 
 ---
 
