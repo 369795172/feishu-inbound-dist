@@ -1,0 +1,39 @@
+# Pipeline F scheme 3: dispatch handback when dev/prod deploy workflows succeed.
+#
+# Copy to surface repos, e.g. AI-MYG/asp-backend/.github/workflows/pipeline-f-handback-trigger.yml
+#
+# Secret: ASP_INBOUND_DISPATCH_TOKEN (PAT with repo scope on dispatch target)
+
+name: Pipeline F Handback Trigger
+
+on:
+  workflow_run:
+    workflows:
+      - "Backend Dev Test Container"
+      - "Backend Container Release"
+    types: [completed]
+
+jobs:
+  dispatch:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch Pipeline F handback
+        env:
+          DISPATCH_TOKEN: ${{ secrets.ASP_INBOUND_DISPATCH_TOKEN }}
+        run: |
+          set -euo pipefail
+          STAGE=dev
+          case "${{ github.event.workflow_run.name }}" in
+            *Release*|*Prod*) STAGE=prod ;;
+          esac
+          curl -fsS -X POST \
+            -H "Authorization: token ${DISPATCH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/AI-MYG/asp-infra/dispatches \
+            -d "$(jq -n \
+              --arg stage "$STAGE" \
+              --arg repo "${{ github.repository }}" \
+              --arg sha "${{ github.event.workflow_run.head_sha }}" \
+              --arg workflow "${{ github.event.workflow_run.name }}" \
+              '{event_type:"feishu-inbound-handback", client_payload:{cicd_stage:$stage, repo:$repo, head_sha:$sha, workflow:$workflow}}')"

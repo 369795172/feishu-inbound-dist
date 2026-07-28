@@ -1,0 +1,57 @@
+# Pipeline F scheme 3: receive deploy completion dispatch and run handback + Feishu notify.
+# Copy to asp-infra: .github/workflows/pipeline-f-handback-dispatch.yml
+
+name: Pipeline F Handback Dispatch
+
+on:
+  repository_dispatch:
+    types: [feishu-inbound-handback]
+
+jobs:
+  handback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install feishu-inbound engine
+        run: |
+          pip install "feishu-inbound @ git+https://github.com/369795172/feishu-inbound-skill.git@v0.1.11"
+
+      - name: Run Pipeline F from CI/CD
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PIPELINE_F_FEISHU_APP_ID: ${{ secrets.PIPELINE_F_FEISHU_APP_ID }}
+          PIPELINE_F_FEISHU_APP_SECRET: ${{ secrets.PIPELINE_F_FEISHU_APP_SECRET }}
+          REPO: ${{ github.event.client_payload.repo }}
+          HEAD_SHA: ${{ github.event.client_payload.head_sha }}
+          CICD_STAGE: ${{ github.event.client_payload.cicd_stage }}
+        run: |
+          ISSUE=$(python - <<'PY'
+          import re, os, subprocess, json
+          repo = os.environ["REPO"]
+          sha = os.environ["HEAD_SHA"]
+          raw = subprocess.check_output(["gh", "api", f"repos/{repo}/commits/{sha}/pulls"], text=True)
+          pulls = json.loads(raw or "[]")
+          for pr in pulls:
+              ref = (pr.get("head") or {}).get("ref") or ""
+              m = re.match(r"issue-(\d+)", ref)
+              if m:
+                  print(m.group(1))
+                  break
+          PY
+          )
+          if [ -z "${ISSUE:-}" ]; then
+            echo "No issue number resolved from merge commit; skipping."
+            exit 0
+          fi
+          python -m feishu_inbound.cli handback \
+            --config tools/feishu_inbound/config.yaml \
+            --from-cicd \
+            --repo "$REPO" \
+            --issue "$ISSUE" \
+            --head-sha "$HEAD_SHA" \
+            --cicd-stage "$CICD_STAGE"

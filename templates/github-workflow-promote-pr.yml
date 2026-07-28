@@ -1,0 +1,112 @@
+# Acceptance pass → scoped promote PR (per issue/surface).
+# Copy to each ASP surface repo: .github/workflows/promote-pr.yml
+# Disable the push-to-dev create-promote-pr job once this workflow is deployed.
+#
+# Trigger: repository_dispatch only — invoked by Promote Skill (feishu-inbound promote)
+# after agent gate validation. Acceptance pass no longer auto-dispatches this event.
+
+name: Feishu Inbound Promote PR
+
+on:
+  repository_dispatch:
+    types: [feishu-inbound-promote]
+
+jobs:
+  create-promote-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      deployments: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+
+      - name: Resolve integration SHAs for issue
+        id: shas
+        env:
+          ISSUE: ${{ github.event.client_payload.issue_number }}
+          SURFACE: ${{ github.event.client_payload.surface }}
+          HEAD_SHA: ${{ github.event.client_payload.head_sha }}
+          SOURCE_BRANCH: ${{ github.event.client_payload.source_branch }}
+          TARGET_BRANCH: ${{ github.event.client_payload.target_branch }}
+          INTEGRATION_BRANCH: ${{ vars.INTEGRATION_BRANCH || 'dev' }}
+        run: |
+          set -euo pipefail
+          INTEGRATION="${SOURCE_BRANCH:-$INTEGRATION_BRANCH}"
+          PRODUCTION="${TARGET_BRANCH:-${{ vars.PRODUCTION_BRANCH || 'main' }}}"
+          git fetch origin "$INTEGRATION" "$PRODUCTION" --quiet
+          if [ -n "${HEAD_SHA}" ]; then
+            if ! git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null; then
+              echo "::error::client_payload.head_sha=${HEAD_SHA} is not in this repo (wrong surface dispatch?)"
+              exit 1
+            fi
+            HEAD_SHA_RESOLVED="${HEAD_SHA}"
+          else
+            HEAD_SHA_RESOLVED=$(git rev-parse "origin/${INTEGRATION}")
+          fi
+          BEFORE_SHA=$(git merge-base "origin/${PRODUCTION}" "${HEAD_SHA_RESOLVED}" 2>/dev/null || true)
+          if [ -z "${BEFORE_SHA}" ]; then
+            echo "::error::Unable to resolve merge-base(origin/${PRODUCTION}, ${HEAD_SHA_RESOLVED})"
+            exit 1
+          fi
+          echo "before=${BEFORE_SHA}" >> "$GITHUB_OUTPUT"
+          echo "head=${HEAD_SHA_RESOLVED}" >> "$GITHUB_OUTPUT"
+
+      - name: Create scoped promote PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ISSUE: ${{ github.event.client_payload.issue_number }}
+          SURFACE: ${{ github.event.client_payload.surface }}
+          PRODUCTION_BRANCH: ${{ github.event.client_payload.target_branch || vars.PRODUCTION_BRANCH || 'main' }}
+          INTEGRATION_BRANCH: ${{ github.event.client_payload.source_branch || vars.INTEGRATION_BRANCH || 'dev' }}
+        run: |
+          set -euo pipefail
+          SCRIPT="tools/cicd/create_promote_pr.sh"
+          if [ ! -x "$SCRIPT" ]; then
+            SCRIPT="scripts/cicd/create_promote_pr.sh"
+          fi
+          if [ ! -x "$SCRIPT" ]; then
+            SCRIPT="backend/scripts/create_promote_pr.sh"
+          fi
+          chmod +x "$SCRIPT"
+          "$SCRIPT" \
+            --before "${{ steps.shas.outputs.before }}" \
+            --head "${{ steps.shas.outputs.head }}" \
+            --production-branch "$PRODUCTION_BRANCH" \
+            --integration-branch "$INTEGRATION_BRANCH" \
+            --surface "$SURFACE" \
+            --only-issue "$ISSUE" \
+            --run-url "$RUN_URL" \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Comment on issue when promote fails
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ github.event.client_payload.issue_number }}
+          SURFACE: ${{ github.event.client_payload.surface }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PRODUCTION_BRANCH: ${{ github.event.client_payload.target_branch || vars.PRODUCTION_BRANCH || 'main' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ISSUE}" ]; then
+            exit 0
+          fi
+          gh issue comment "${ISSUE}" --body "$(cat <<EOF
+## Promote PR failed
+
+Scoped promote PR creation failed for issue #${ISSUE} (surface: \`${SURFACE}\`).
+
+**Workflow run**: ${RUN_URL}
+
+### Recovery
+1. Inspect the workflow log for checkout conflicts or missing commits.
+2. Manually create \`promote/issue-${ISSUE}/${SURFACE}\` from \`${PRODUCTION_BRANCH}\` with the issue's dev net-state at the integration merge SHA.
+3. Register a \`dev\` deployment success for the integration merge SHA if branch protection requires it.
+EOF
+)"
