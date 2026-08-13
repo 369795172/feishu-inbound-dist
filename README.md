@@ -14,7 +14,7 @@ Source code stays in the private engine repo. **You do not need engine source** 
 Pin a version in your instance `requirements-feishu-inbound.txt`, then:
 
 ```bash
-VERSION=0.1.37
+VERSION=0.1.39
 pip install "https://github.com/369795172/feishu-inbound-dist/releases/download/v${VERSION}/feishu_inbound-${VERSION}-py3-none-any.whl"
 feishu-inbound --version
 ```
