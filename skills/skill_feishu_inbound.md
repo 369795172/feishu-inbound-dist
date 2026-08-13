@@ -24,7 +24,7 @@ Pipeline **B–F** engine: Feishu Bitable demand pool → GitHub Issue → keywo
 - Install engine from **public dist** (no source access required):
 
 ```bash
-VERSION=0.1.37
+VERSION=0.1.39
 pip install "https://github.com/369795172/feishu-inbound-dist/releases/download/v${VERSION}/feishu_inbound-${VERSION}-py3-none-any.whl"
 feishu-inbound --version
 ```

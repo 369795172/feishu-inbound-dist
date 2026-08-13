@@ -34,13 +34,13 @@ See [rfc/RFC-001-engine-instance-architecture.md](./rfc/RFC-001-engine-instance-
 Pin version in `requirements-feishu-inbound.txt`:
 
 ```text
-feishu-inbound==0.1.37
+feishu-inbound==0.1.39
 ```
 
 Install from this public dist (no token):
 
 ```bash
-VERSION=0.1.37
+VERSION=0.1.39
 pip install "https://github.com/369795172/feishu-inbound-dist/releases/download/v${VERSION}/feishu_inbound-${VERSION}-py3-none-any.whl"
 feishu-inbound --version
 ```

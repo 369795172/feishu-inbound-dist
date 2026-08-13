@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.39 (2026-08-13)
+
+- Pipeline C validates and canonically renders `AnalysisContract v1` before publishing.
+- Invalid agent output enters evidence-aware repair and route fallback before `analysis-failed`.
+- Pipeline D rejects malformed v1 Analysis while retaining legacy comment compatibility.
+
+## 0.1.38 (2026-08-07)
+
+- Pipeline D recognizes Markdown-wrapped `无` as the no-product-ambiguity sentinel.
+- Prefixes such as `无法确认` remain unresolved product ambiguity.
+
 ## 0.1.37 (2026-07-28)
 
 - Global task manager (`runtime/task_manager.py`): file-lock + JSON lease limits concurrent AgentClient/OpenCode sessions across Pipeline C/D/E (default `max_active_agents=2`, env `FI_MAX_ACTIVE_AGENTS`).
