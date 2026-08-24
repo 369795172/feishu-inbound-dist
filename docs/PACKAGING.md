@@ -5,9 +5,9 @@ GitHub **does not** host Python packages on GitHub Packages ([roadmap closed 202
 | Surface | Repo | Visibility | Role |
 |---------|------|------------|------|
 | Source / private Release | `369795172/feishu-inbound-skill` | private | Engine SSOT (source, tests, RFCs) + backup wheel |
-| Public dist Release | `369795172/feishu-inbound-dist` | **public** | Release wheels + documentation (no source tree) |
+| Public dist Release | `369795172/feishu-inbound-dist` | **public** | Artifacts-only install source (no source tree) |
 
-Instance repos (ASP, rootgrove personal) **only pin a version** in `requirements-feishu-inbound.txt`, e.g. `feishu-inbound==0.1.39`. Install helpers prefer the **public** wheel URL, then fall back to the private engine Release.
+Instance repos (ASP, rootgrove personal) **only pin a version** in `requirements-feishu-inbound.txt`, e.g. `feishu-inbound==0.1.34`. Install helpers prefer the **public** wheel URL, then fall back to the private engine Release.
 
 ## Publish (maintainer)
 
@@ -22,8 +22,6 @@ Gate script: `./scripts/release_engine.sh` (from this repo).
 When `main` already has a higher `pyproject` version than the latest Release, push to `main` also triggers **Auto-tag when version ahead of release**, which creates `vX.Y.Z` and lets **Publish Python Package** attach the wheel to the private Release and mirror it to the public dist (when `FEISHU_INBOUND_DIST_TOKEN` is set).
 
 `release_engine.sh` also verifies the public dist asset and, if missing, runs `scripts/mirror_wheel_to_dist.sh`.
-
-After each release, update the public install examples and changelog together with the mirrored wheel so consumers can identify the current pin.
 
 ### GHA secret for public mirror
 
@@ -43,7 +41,7 @@ Without this secret, Publish workflow still uploads the private Release and emit
 **Preferred (no token):** public dist bare URL.
 
 ```bash
-VERSION=0.1.39
+VERSION=0.1.34
 pip install "https://github.com/369795172/feishu-inbound-dist/releases/download/v${VERSION}/feishu_inbound-${VERSION}-py3-none-any.whl"
 ```
 

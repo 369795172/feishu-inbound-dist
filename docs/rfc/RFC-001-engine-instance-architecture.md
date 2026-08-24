@@ -6,6 +6,8 @@
 
 ## Amendment 2026-06-16 — A-light hybrid
 
+**Why A-light hybrid, not「继续在 asp-infra 演化 B–F」**：asp-infra 是租户仓；在那里长核心逻辑会让第二个 instance 只能再复制一份，直接违背 PRD 零分叉。A-light 把 B–F 收到本仓，Pipeline A 仍留在 instance GHA（飞书→Issue 的凭证与 org 边界不同）。被否的「把 A 也收进引擎」会把公司 Bitable token 与个人 token 的生命周期耦进同一发布面。
+
 **裁决**：采用 A-light hybrid，不再在 asp-infra 演化 B–F 核心逻辑。
 
 | 层 | 归属 |
@@ -22,6 +24,8 @@
 **launchd**：消灭 `com.rootgrove.feishu-inbound-*` 与 `com.asp.*` 双装；B 后置迁 Mac Mini。
 
 ## Amendment 2026-06-17 — Instance runtime layout (`var/feishu_inbound`)
+
+**Why instance `var/feishu_inbound/`, not surface repo, not git**：checkpoint 是租户运行时（扫到哪、锁了哪）。放进 asp-backend 工作树会让 surface PR 带着引擎状态；放进本仓 git 会把 ASP 与 Personal 的游标写成同一份假 SSOT。相对 **config 文件**解析路径，是为了否决「相对进程 cwd」（launchd 与人工 CLI 的 cwd 不同）。
 
 **裁决**：Pipeline B–F 的 checkpoint / engine log 属于 **instance repo**，不进 git；**不属于 surface repo**（如 asp-backend）。
 
@@ -40,8 +44,32 @@
 |--------|------|---------------|
 | 打包维度 | 独立通用 skill repo（本 repo） | rootgrove monorepo 维度：私人仓库无法分发给团队；且正是 06-03 竞态事故的肇因维度 |
 | 归属 | `369795172/feishu-inbound-skill`（个人账号） | AI-MYG org：引擎是个人资产，ASP 只是租户 |
-| 消费方式 | `pip install from git tag` | git submodule：团队成员摩擦大；vendored sync：重新制造分叉 |
+| 消费方式 | 立项：`pip install from git tag`；现行：[PACKAGING.md](../PACKAGING.md) GitHub Release wheel | git submodule：团队成员摩擦大；vendored sync：重新制造分叉；GitHub Packages：不托管 Python |
 | 引擎语言形态 | `src/feishu_inbound/` Python 包 + console entrypoints | 保持与 asp-infra 现有脚本逻辑同构，降低迁移 diff |
+
+### 1.1 Why X, not Y（Gate B）
+
+#### Why 独立 skill repo, not rootgrove monorepo？
+
+rootgrove 是私人工作区，ASP 团队无法作为一等公民消费。2026-06-03 的竞态来自「文档指针 vs 另一份脚本正本」同属 monorepo 分叉维度。独立 repo 让引擎有自己的 tag / Release，instance 只 pin 版本。
+
+#### Why 个人账号仓, not AI-MYG org？
+
+引擎是个人资产；ASP 是租户。放到公司 org 会把 Personal / 其他 side-project instance 的发布权绑进 ASP 治理。被否方案的前提（「引擎只服务 ASP」）已经在第二个消费者出现时失效。
+
+#### Why Release wheel, not GitHub Packages / git+https / submodule / vendored copy？
+
+GitHub Packages 不托管 Python（roadmap 已关，`pypi.pkg.github.com` 404）。`git+https` 与跟踪 `main` 让 instance 随引擎 HEAD 漂移。submodule 增加团队 clone 摩擦。vendored sync 再造分叉。立项写过 git tag 安装；现行 SSOT 是 dual GitHub Release wheel（private 源仓 + public `feishu-inbound-dist`），见 PACKAGING.md。
+
+#### Why Python 包 + 现有脚本同构, not 换语言 / 重写流水线？
+
+迁移成本由 diff 大小决定。换语言或重写 label 语义会让 M2 影子对比无法「决策输出 diff 为零」。被否的是「趁抽取一起现代化」。
+
+#### Why AgentClient 协议注入, not 引擎绑死 OpenCode/Cursor？
+
+ASP 与 Personal 的 executor 链不同。引擎只定义 `run(prompt, workdir, model?)`。绑死单一平台会把第二个 instance 的工具偏好做成引擎版本问题。
+
+**决策考古缺口**：AgentClient 链在「迁移期 import instance 实现」vs「通用链收进引擎」之间，Phase 2 后期未形成带日期的否案；从 #111 日起新决策按 Why X not Y 记。
 
 ## 2. 切面划分
 
@@ -109,10 +137,11 @@ pipeline:
 
 **接入新项目**：instance `new_instance.py` 默认写 `umbrella_runner: true`，**无需**新 launchd；仅需 `config/feishu_inbound_<slug>.yaml` + surfaces。
 
-**反模式**：
+**Why 方案 C（umbrella tick）, not A/B**：
 
-- **A**：每项目 `install_*_launchd.sh` → plist 膨胀
-- **B**：runner 硬编码 config 路径列表 + `set -e` → 扩展靠改 shell、故障耦合
+- **A**（每项目一只 launchd）：plist 与错点时刻随项目数线性膨胀；失败面是「漏装一只 tick」。
+- **B**（runner 硬编码路径 + `set -e`）：扩项目必须改 shell；一个 config 非零退出会拖死整组。
+- **C**：发现规则在 instance `umbrella_configs.py`，失败隔离且 runner 对 launchd exit 0。引擎只文档化规则，不把 personal 路径写进 `src/`。
 
 Instance SSOT 实现：rootgrove `tools/feishu_inbound/umbrella_configs.py`（见 [feishu-inbound-skill#37](https://github.com/369795172/feishu-inbound-skill/issues/37)）。
 
