@@ -87,7 +87,17 @@ Every release is **dual-published**: the same wheel tag `vX.Y.Z` appears on both
 
 Maintainers: `./scripts/release_engine.sh` auto-runs `scripts/mirror_docs_to_dist.sh --push` after wheel publish. GHA `Publish Python Package` mirrors docs when `FEISHU_INBOUND_DIST_TOKEN` is set. Manual: `cd projects/feishu-inbound-skill && ./scripts/mirror_docs_to_dist.sh X.Y.Z --push`
 
+## License
+
+The `feishu-inbound` wheels and mirrored documentation in this repository are
+distributed under the [MIT License](LICENSE); see [NOTICE](NOTICE) for
+attribution and disclaimer text. The LICENSE copyright line mirrors the
+package metadata that wheels have carried since early versions; it records
+the author of record and is not a representation that any ownership question
+has been finally determined (see the PROVENANCE document mirrored from the
+engine repository).
+
 ## Notes
 
-- Wheels are binary distributions; treat them as redistributable build products, not open source.
+- Wheels are redistributable build products distributed under the MIT License (see [LICENSE](LICENSE)).
 - Do not open PRs with engine **source code** here. Engine changes go to the private skill repo; documentation updates can go here directly or via the mirror script.
