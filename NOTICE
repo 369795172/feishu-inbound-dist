@@ -1,0 +1,25 @@
+feishu-inbound (public distribution)
+Copyright (c) 2026 Marvin Yuan
+
+This repository (369795172/feishu-inbound-dist) distributes Release wheels and
+mirrored documentation for the `feishu-inbound` pipeline engine (pip package
+`feishu_inbound`). The engine source tree lives in the private repository
+369795172/feishu-inbound-skill.
+
+This product includes software developed by Marvin Yuan with the assistance
+of AI coding tools; the sanitized development provenance is maintained in the
+engine repository (docs/PROVENANCE.md) and is mirrored into this repository's
+docs at the next documentation refresh.
+
+This software is licensed under the MIT License (see LICENSE). The copyright
+line above mirrors the package metadata. It records the author of record for
+licensing purposes and is not a representation that any ownership question
+has been finally determined.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
